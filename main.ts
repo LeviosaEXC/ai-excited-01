@@ -1,18 +1,21 @@
-// The Snowglobe Galaxy (fix) — ai-excited-01
-// Image sha256 prefix: b3a03dae — see HANDOFF-FIX.md for the full hash.
-// Copies entry.png (1024x1024 JPEG, 394521 bytes) to the output directory.
-// Deterministic: same input bytes produce the same output bytes every run.
+// The Snowglobe Galaxy — ai-excited-01.
+// Writes the entry image to the output directory, deterministically.
+// Image: 1024x1024 JPEG, 379216 bytes, sha256 917746ca…
 import { copyFileSync, mkdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const outDir = process.argv[2] ?? join(here, "output");
+const source = join(here, "entry.png");
+const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
+const target = join(outDir, "entry.png");
+
 mkdirSync(outDir, { recursive: true });
-const src = join(here, "entry.png");
-const dst = join(outDir, "entry.png");
-copyFileSync(src, dst);
-const got = statSync(dst).size;
-const want = statSync(src).size;
-if (got !== want) throw new Error(`size mismatch: copied ${got}, expected ${want}`);
-console.log(`wrote ${dst} (${got} bytes)`);
+copyFileSync(source, target);
+
+const expected = statSync(source).size;
+const written = statSync(target).size;
+if (written !== expected) {
+  throw new Error(`size mismatch: wrote ${written}, expected ${expected}`);
+}
+console.log(`wrote ${target} (${written} bytes)`);
